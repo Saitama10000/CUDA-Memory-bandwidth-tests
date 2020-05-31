@@ -1,3 +1,5 @@
+char* kernel_ptx = R"(
+
 .version 6.5
 .target sm_75
 .address_size 64
@@ -18,13 +20,25 @@
 	mad.wide.u32 %r0, %thid, 8, %timings;
 	
 	mov.u64 %u0, %clock64;
-	mov.u64 %u1, %clock64;
 	
-	st.u64 [%r0], %u0;
-	st.u64 [%r0 + 8], %u1;
+	.reg.f32 %f<8>;
+	.reg .pred %p;
+	
+	add.f32 %f0, %f1, %f0;
+	add.f32 %f0, %f1, %f0;
+	add.f32 %f0, %f1, %f0;
+	add.f32 %f0, %f1, %f0;
+	setp.nan.f32 %p, %f0, %f0;
+@%p exit;
+	
+	mov.u64 %u1, %clock64;
+	sub.u64 %u1, %u1, %u0;
+
+	st.u64 [%r0], %u1;
 
 	ret;
 }
+
 
 .visible .entry get_time(
 	.param .u64 .ptr .global timings
@@ -41,10 +55,21 @@
 	mad.wide.u32 %r0, %thid, 8, %timings;
 	
 	mov.u64 %u0, %globaltimer;
-	mov.u64 %u1, %globaltimer;
 	
-	st.u64 [%r0], %u0;
-	st.u64 [%r0 + 8], %u1;
+	.reg.f32 %f<8>;
+	.reg .pred %p;
+	add.f32 %f0, %f1, %f0;
+	add.f32 %f0, %f1, %f0;
+	add.f32 %f0, %f1, %f0;
+	add.f32 %f0, %f1, %f0;
+	setp.nan.f32 %p, %f0, %f0;
+@%p exit;
+	mov.u64 %u1, %globaltimer;
+	sub.u64 %u1, %u1, %u0;
+	
+	st.u64 [%r0], %u1;
 
 	ret;
 }
+
+)";
