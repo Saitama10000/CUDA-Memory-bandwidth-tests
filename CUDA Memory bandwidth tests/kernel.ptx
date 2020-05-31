@@ -1,0 +1,50 @@
+.version 6.5
+.target sm_75
+.address_size 64
+
+
+.visible .entry get_clock(
+	.param .u64 .ptr .global timings
+)
+{
+	.reg .u64 %timings;
+	.reg .u32 %thid;
+
+	ld.param.u64 %timings, [timings];
+	mov.u32 %thid, %tid.x;
+	
+	.reg .u64 %r<4>;
+	.reg .u64 %u<4>;
+	mad.wide.u32 %r0, %thid, 8, %timings;
+	
+	mov.u64 %u0, %clock64;
+	mov.u64 %u1, %clock64;
+	
+	st.u64 [%r0], %u0;
+	st.u64 [%r0 + 8], %u1;
+
+	ret;
+}
+
+.visible .entry get_time(
+	.param .u64 .ptr .global timings
+)
+{
+	.reg .u64 %timings;
+	.reg .u32 %thid;
+
+	ld.param.u64 %timings, [timings];
+	mov.u32 %thid, %tid.x;
+	
+	.reg .u64 %r<4>;
+	.reg .u64 %u<4>;
+	mad.wide.u32 %r0, %thid, 8, %timings;
+	
+	mov.u64 %u0, %globaltimer;
+	mov.u64 %u1, %globaltimer;
+	
+	st.u64 [%r0], %u0;
+	st.u64 [%r0 + 8], %u1;
+
+	ret;
+}
